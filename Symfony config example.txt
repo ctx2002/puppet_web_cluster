@@ -1,0 +1,60 @@
+framework:
+    validation:
+        cache: validator.mapping.cache.redis
+    serializer:
+        cache: serializer.mapping.cache.redis
+    session:
+        handler_id: session.handler.redis
+
+doctrine:
+    orm:
+        auto_mapping: true
+        metadata_cache_driver:
+            type: redis
+            host: "%redis.ip%"
+            port: "%redis.port%"
+            instance_class: Redis
+            class: RedisCache
+        query_cache_driver:
+            type: redis
+            host: "%redis.ip%"
+            port: "%redis.port%"
+            instance_class: Redis
+            class: RedisCache
+        result_cache_driver:
+            type: redis
+            host: "%redis.ip%"
+            port: "%redis.port%"
+            instance_class: Redis
+            class: RedisCache
+
+services:
+    serializer.mapping.cache.redis:
+        class: Doctrine\Common\Cache\RedisCache
+
+    validator.mapping.cache.redis:
+        class: Symfony\Component\Validator\Mapping\Cache\DoctrineCache
+        arguments: ['@doctrine.cache.redis']
+
+    redis:
+        class: Redis
+        calls:
+            - [ connect, [ '%redis.ip%', '%redis.port%' ]]
+
+    doctrine.cache.redis:
+        class: Doctrine\Common\Cache\RedisCache
+        calls:
+            - [setRedis, ["@redis"]]
+
+    session.handler.redis:
+        class: Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeSessionHandler
+
+    serializer.mapping.cache.memcached:
+        class: Doctrine\Common\Cache\MemcachedCache
+
+
+doctrine_cache:
+    providers:
+        redis_cache:
+            redis:
+                connection_id: redis
